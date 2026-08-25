@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>ForestSphere | Cloud-Based Forest Conservation Management</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ============================= -->
+    <!-- LOGIN PAGE -->
+    <!-- ============================= -->
+
+    <section id="loginPage" class="auth-page">
+
+        <div class="auth-container">
+
+            <div class="brand-section">
+
+                <div class="logo">
+                    🌳
+                </div>
+
+                <h1>Forest<span>Sphere</span></h1>
+
+                <p>
+                    Forest Conservation Management Platform
+                </p>
+
+            </div>
+
+
+            <div class="auth-card">
+
+                <h2>Welcome Back</h2>
+
+                <p class="subtitle"><b>
+                    Sign in to continue to ForestSphere</b>
+                </p>
+
+
+                <form id="loginForm">
+
+                    <div class="input-group">
+
+                        <label>Email</label>
+
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            placeholder="Enter your email"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Password</label>
+
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            placeholder="Enter your password"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button type="submit"
+                            class="primary-button">
+
+                        Sign In
+
+                    </button>
+
+                </form>
+
+
+                <p id="loginMessage"
+                   class="form-message">
+                </p>
+
+
+                <p class="switch-auth">
+
+                    Don't have an account?
+
+                    <button
+                        type="button"
+                        onclick="showRegister()">
+
+                        Create Account
+
+                    </button>
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- REGISTER PAGE -->
+    <!-- ============================= -->
+
+    <section id="registerPage"
+             class="auth-page hidden">
+
+        <div class="auth-container">
+
+            <div class="brand-section">
+
+                <div class="logo">
+                    🌳
+                </div>
+
+                <h1>Forest<span>Sphere</span></h1>
+
+                <p>
+                    Protect • Restore • Manage
+                </p>
+
+            </div>
+
+
+            <div class="auth-card">
+
+                <h2>Create Account</h2>
+
+                <p class="subtitle">
+                    Join the ForestSphere conservation network
+                </p>
+
+
+                <form id="registerForm">
+
+                    <div class="input-group">
+
+                        <label>Name</label>
+
+                        <input
+                            type="text"
+                            id="registerName"
+                            placeholder="Full name"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Email</label>
+
+                        <input
+                            type="email"
+                            id="registerEmail"
+                            placeholder="Email address"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Phone</label>
+
+                        <input
+                            type="text"
+                            id="registerPhone"
+                            placeholder="Phone number"
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Password</label>
+
+                        <input
+                            type="password"
+                            id="registerPassword"
+                            placeholder="Minimum 6 characters"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button type="submit"
+                            class="primary-button">
+
+                        Create Account
+
+                    </button>
+
+                </form>
+
+
+                <p id="registerMessage"
+                   class="form-message">
+                </p>
+
+
+                <p class="switch-auth">
+
+                    Already have an account?
+
+                    <button
+                        type="button"
+                        onclick="showLogin()">
+
+                        Sign In
+
+                    </button>
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- MAIN APPLICATION -->
+    <!-- ============================= -->
+
+    <section id="appPage"
+             class="app-page hidden">
+
+
+        <!-- SIDEBAR -->
+
+        <aside class="sidebar">
+
+            <div class="sidebar-logo">
+
+                <div class="small-logo">
+                    🌳
+                </div>
+
+                <div>
+                    <h2>Forest<span>Sphere</span></h2>
+
+                    <small>
+                        Conservation Management
+                    </small>
+                </div>
+
+            </div>
+
+
+            <nav>
+
+                <button
+                    class="nav-item active"
+                    onclick="showSection('dashboard')">
+
+                    <span>▦</span>
+                    Dashboard
+
+                </button>
+
+
+                <button
+                    class="nav-item"
+                    onclick="showSection('conflicts')">
+
+                    <span>⚠</span>
+                    Conflict Reports
+
+                </button>
+
+
+                <button
+                    class="nav-item"
+                    onclick="showSection('wildlife')">
+
+                    <span>🐘</span>
+                    Wildlife Sightings
+
+                </button>
+
+
+                <button
+                    class="nav-item"
+                    onclick="showSection('restoration')">
+
+                    <span>🌱</span>
+                    Restoration
+
+                </button>
+
+            </nav>
+
+
+            <div class="sidebar-bottom">
+
+                <button
+                    class="logout-button"
+                    onclick="logout()">
+
+                    ↪ Logout
+
+                </button>
+
+            </div>
+
+        </aside>
+
+
+        <!-- MAIN CONTENT -->
+
+        <main class="main-content">
+
+
+            <!-- HEADER -->
+
+            <header class="topbar">
+
+                <div>
+
+                    <h2 id="pageTitle">
+                        Dashboard
+                    </h2>
+
+                    <p id="welcomeText">
+                        Welcome to ForestSphere
+                    </p>
+
+                </div>
+
+
+                <div class="user-info">
+
+                    <div class="user-avatar">
+                        U
+                    </div>
+
+                    <div>
+
+                        <strong id="userName">
+                            User
+                        </strong>
+
+                        <small id="userRole">
+                            Community
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!-- ============================= -->
+            <!-- DASHBOARD -->
+            <!-- ============================= -->
+
+            <section id="dashboardSection"
+                     class="content-section">
+
+                <div class="hero-card">
+
+                    <div>
+
+                        <p class="hero-label">
+                            FORESTSPHERE
+                        </p>
+
+                        <h1>
+                            Protecting forests.
+                            <br>
+                            Supporting communities.
+                        </h1>
+
+                        <p>
+                            A centralized platform for
+                            conservation reporting,
+                            wildlife monitoring and
+                            forest restoration management.
+                        </p>
+
+                    </div>
+
+                    <div class="hero-icon">
+                        🌳
+                    </div>
+
+                </div>
+
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            ⚠
+                        </div>
+
+                        <div>
+                            <span>Conflict Reports</span>
+                            <strong id="conflictCount">
+                                0
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            🐘
+                        </div>
+
+                        <div>
+                            <span>Wildlife Sightings</span>
+                            <strong id="wildlifeCount">
+                                0
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            🌱
+                        </div>
+
+                        <div>
+                            <span>Restoration Projects</span>
+                            <strong id="projectCount">
+                                0
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat-card">
+
+                        <div class="stat-icon">
+                            ✓
+                        </div>
+
+                        <div>
+                            <span>Verified Reports</span>
+                            <strong id="verifiedCount">
+                                0
+                            </strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-grid">
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <h3>
+                                    Recent Conflict Reports
+                                </h3>
+
+                                <p>
+                                    Latest conservation incidents
+                                </p>
+
+                            </div>
+
+                            <button
+                                onclick="showSection('conflicts')">
+
+                                View All
+
+                            </button>
+
+                        </div>
+
+
+                        <div id="recentConflicts"
+                             class="empty-state">
+
+                            No reports available
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="panel">
+
+                        <div class="panel-header">
+
+                            <div>
+
+                                <h3>
+                                    Restoration Overview
+                                </h3>
+
+                                <p>
+                                    Current restoration activity
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <div id="restorationOverview"
+                             class="empty-state">
+
+                            No projects available
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ============================= -->
+            <!-- CONFLICTS -->
+            <!-- ============================= -->
+
+            <section id="conflictsSection"
+                     class="content-section hidden">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Human–Elephant Conflict Reports
+                        </h2>
+
+                        <p>
+                            Report and manage human–elephant
+                            conflict incidents.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="primary-button small"
+                        onclick="openConflictModal()">
+
+                        + Report Incident
+
+                    </button>
+
+                </div>
+
+
+                <div id="conflictList"
+                     class="card-list">
+
+                    <div class="empty-state">
+                        Loading reports...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ============================= -->
+            <!-- WILDLIFE -->
+            <!-- ============================= -->
+
+            <section id="wildlifeSection"
+                     class="content-section hidden">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Wildlife Sightings
+                        </h2>
+
+                        <p>
+                            Record wildlife observations
+                            and sightings.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        class="primary-button small"
+                        onclick="openWildlifeModal()">
+
+                        + Add Sighting
+
+                    </button>
+
+                </div>
+
+
+                <div id="wildlifeList"
+                     class="card-list">
+
+                    <div class="empty-state">
+                        Loading sightings...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ============================= -->
+            <!-- RESTORATION -->
+            <!-- ============================= -->
+
+            <section id="restorationSection"
+                     class="content-section hidden">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Forest Restoration
+                        </h2>
+
+                        <p>
+                            Monitor forest conservation
+                            and restoration projects.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="createProjectButton"
+                        class="primary-button small hidden"
+                        onclick="openProjectModal()">
+
+                        + Create Project
+
+                    </button>
+
+                </div>
+
+
+                <div id="projectList"
+                     class="card-list">
+
+                    <div class="empty-state">
+                        Loading projects...
+                    </div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </section>
+
+
+    <!-- ============================= -->
+    <!-- CONFLICT MODAL -->
+    <!-- ============================= -->
+
+    <div id="conflictModal"
+         class="modal hidden">
+
+        <div class="modal-card">
+
+            <div class="modal-header">
+
+                <h2>Report Conflict Incident</h2>
+
+                <button onclick="closeModal('conflictModal')">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="conflictForm">
+
+                <div class="input-group">
+
+                    <label>Incident Title</label>
+
+                    <input
+                        type="text"
+                        id="conflictTitle"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Description</label>
+
+                    <textarea
+                        id="conflictDescription"
+                        rows="4"
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="input-group">
+
+                        <label>Location</label>
+
+                        <input
+                            type="text"
+                            id="conflictLocation"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Incident Date</label>
+
+                        <input
+                            type="date"
+                            id="conflictDate"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Incident Type</label>
+
+                    <select
+                        id="conflictType"
+                        required>
+
+                        <option value="">
+                            Select type
+                        </option>
+
+                        <option value="Crop Damage">
+                            Crop Damage
+                        </option>
+
+                        <option value="Property Damage">
+                            Property Damage
+                        </option>
+
+                        <option value="Human Safety">
+                            Human Safety
+                        </option>
+
+                        <option value="Elephant Sighting">
+                            Elephant Sighting
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button">
+
+                    Submit Report
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- WILDLIFE MODAL -->
+    <!-- ============================= -->
+
+    <div id="wildlifeModal"
+         class="modal hidden">
+
+        <div class="modal-card">
+
+            <div class="modal-header">
+
+                <h2>Record Wildlife Sighting</h2>
+
+                <button onclick="closeModal('wildlifeModal')">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="wildlifeForm">
+
+                <div class="input-group">
+
+                    <label>Species</label>
+
+                    <input
+                        type="text"
+                        id="wildlifeSpecies"
+                        placeholder="e.g. Asian Elephant"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Location</label>
+
+                    <input
+                        type="text"
+                        id="wildlifeLocation"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Date & Time</label>
+
+                    <input
+                        type="datetime-local"
+                        id="wildlifeDate"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Description</label>
+
+                    <textarea
+                        id="wildlifeDescription"
+                        rows="4"
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button">
+
+                    Submit Sighting
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- PROJECT MODAL -->
+    <!-- ============================= -->
+
+    <div id="projectModal"
+         class="modal hidden">
+
+        <div class="modal-card">
+
+            <div class="modal-header">
+
+                <h2>Create Restoration Project</h2>
+
+                <button onclick="closeModal('projectModal')">
+                    ×
+                </button>
+
+            </div>
+
+
+            <form id="projectForm">
+
+                <div class="input-group">
+
+                    <label>Project Name</label>
+
+                    <input
+                        type="text"
+                        id="projectName"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Description</label>
+
+                    <textarea
+                        id="projectDescription"
+                        rows="4"
+                        required
+                    ></textarea>
+
+                </div>
+
+
+                <div class="input-group">
+
+                    <label>Location</label>
+
+                    <input
+                        type="text"
+                        id="projectLocation"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="input-group">
+
+                        <label>Start Date</label>
+
+                        <input
+                            type="date"
+                            id="projectStartDate"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label>Target Date</label>
+
+                        <input
+                            type="date"
+                            id="projectTargetDate"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="primary-button">
+
+                    Create Project
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
