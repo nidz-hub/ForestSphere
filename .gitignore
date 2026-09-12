@@ -1,0 +1,10 @@
+# Python virtual environment
+m1-iot/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ML training outputs
+m1-iot/runs/
+m1-iot/outputs/
