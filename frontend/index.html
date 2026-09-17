@@ -308,6 +308,16 @@
 
                 </button>
 
+
+                <button
+                    class="nav-item"
+                    onclick="showSection('elephant-detection')">
+
+                    <span>🤖</span>
+                    AI Elephant Detection
+
+                </button>
+
             </nav>
 
 
@@ -632,6 +642,75 @@
 
                     <div class="empty-state">
                         Loading sightings...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ============================= -->
+            <!-- AI ELEPHANT DETECTION -->
+            <!-- ============================= -->
+
+            <section id="elephant-detectionSection"
+                     class="content-section hidden">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            AI Elephant Detection
+                        </h2>
+
+                        <p>
+                            Monitor AI-powered elephant detections from the virtual camera and PIR sensor.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="primary-button small"
+                        onclick="loadElephantDetections()">
+
+                        ↻ Refresh
+
+                    </button>
+
+                </div>
+
+
+                <div class="detection-info-panel">
+
+                    <div class="detection-info-item">
+                        <span>Detection Source</span>
+                        <strong>Virtual Camera + PIR</strong>
+                    </div>
+
+                    <div class="detection-info-item">
+                        <span>ML Model</span>
+                        <strong>YOLO11n</strong>
+                    </div>
+
+                    <div class="detection-info-item">
+                        <span>Cloud Storage</span>
+                        <strong>MongoDB Atlas</strong>
+                    </div>
+
+                    <div class="detection-info-item">
+                        <span>Verification</span>
+                        <strong>Officer / Admin</strong>
+                    </div>
+
+                </div>
+
+
+                <div id="elephantDetectionList"
+                     class="card-list">
+
+                    <div class="empty-state">
+                        Loading AI elephant detections...
                     </div>
 
                 </div>

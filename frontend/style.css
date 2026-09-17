@@ -898,3 +898,261 @@ textarea {
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================= */
+/* AI ELEPHANT DETECTION */
+/* ============================= */
+
+.detection-info-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.detection-info-item {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 18px;
+}
+
+.detection-info-item span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 7px;
+}
+
+.detection-info-item strong {
+    font-size: 14px;
+}
+
+.detection-card {
+    border-left: 4px solid var(--green);
+}
+
+.detection-id {
+    font-size: 11px !important;
+    margin-top: 4px !important;
+}
+
+.detection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 18px;
+}
+
+.detection-field {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 13px;
+}
+
+.detection-field-wide {
+    grid-column: span 2;
+}
+
+.detection-field span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.detection-field strong {
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.risk-low {
+    color: var(--forest);
+}
+
+.risk-medium {
+    color: var(--warning);
+}
+
+.risk-high,
+.risk-critical {
+    color: var(--danger);
+}
+
+.detection-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.secondary-button {
+    border: 1px solid var(--danger);
+    background: white;
+    color: var(--danger);
+    padding: 13px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.secondary-button:hover {
+    background: #feeceb;
+    transform: translateY(-1px);
+}
+
+.secondary-button.small {
+    padding: 10px 15px;
+}
+
+@media (max-width: 1000px) {
+
+    .detection-info-panel {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .detection-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+@media (max-width: 650px) {
+
+    .detection-info-panel {
+        grid-template-columns: 1fr;
+    }
+
+    .detection-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detection-field-wide {
+        grid-column: span 1;
+    }
+
+    .detection-actions {
+        flex-direction: column;
+    }
+
+    .detection-actions button {
+        width: 100%;
+    }
+
+}
+
+
+/* ============================================================
+   AI Elephant Detection - Image Card Layout
+   ============================================================ */
+
+.detection-card {
+    overflow: hidden;
+}
+
+.detection-card-content {
+    display: grid;
+    grid-template-columns: minmax(240px, 34%) minmax(0, 1fr);
+    gap: 24px;
+    align-items: stretch;
+}
+
+.detection-card-details {
+    min-width: 0;
+}
+
+.detection-image-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 220px;
+    max-height: 360px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #eef3ef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.detection-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: 360px;
+    object-fit: contain;
+    border-radius: 14px;
+    background: #eef3ef;
+}
+
+.detection-image-error {
+    display: none;
+    padding: 24px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.detection-image-wrapper.image-load-error .detection-image-error {
+    display: block;
+}
+
+.detection-image-placeholder {
+    width: 100%;
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.detection-card .data-card-header {
+    margin-bottom: 18px;
+}
+
+.detection-card .detection-grid {
+    margin-top: 0;
+}
+
+
+/* ============================================================
+   Responsive AI Detection Cards
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    .detection-card-content {
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    .detection-image-wrapper {
+        min-height: 240px;
+        max-height: 420px;
+    }
+
+    .detection-image {
+        max-height: 420px;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .detection-image-wrapper {
+        min-height: 200px;
+        max-height: 300px;
+        border-radius: 10px;
+    }
+
+    .detection-image {
+        max-height: 300px;
+        border-radius: 10px;
+    }
+
+}

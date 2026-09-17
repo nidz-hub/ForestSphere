@@ -366,95 +366,87 @@ function showSection(section) {
         "dashboard",
         "conflicts",
         "wildlife",
-        "restoration"
+        "restoration",
+        "elephant-detection"
     ];
-
 
     sections.forEach(name => {
 
-        document
-            .getElementById(
-                `${name}Section`
-            )
-            .classList.add("hidden");
+        const element = document.getElementById(
+            `${name}Section`
+        );
+
+        if (element) {
+            element.classList.add("hidden");
+        }
 
     });
 
 
-    document
-        .getElementById(
-            `${section}Section`
-        )
-        .classList.remove("hidden");
+    const selectedSection = document.getElementById(
+        `${section}Section`
+    );
+
+    if (selectedSection) {
+        selectedSection.classList.remove("hidden");
+    }
 
 
     document
         .querySelectorAll(".nav-item")
         .forEach(button => {
-
             button.classList.remove("active");
-
         });
 
 
     const titles = {
-
         dashboard: "Dashboard",
-
         conflicts: "Conflict Reports",
-
         wildlife: "Wildlife Sightings",
-
-        restoration: "Forest Restoration"
-
+        restoration: "Forest Restoration",
+        "elephant-detection": "AI Elephant Detection"
     };
 
 
     document.getElementById(
         "pageTitle"
-    ).textContent = titles[section];
+    ).textContent = titles[section] || "ForestSphere";
 
 
-    const navItems =
-        document.querySelectorAll(".nav-item");
+    const activeButton = Array.from(
+        document.querySelectorAll(".nav-item")
+    ).find(button =>
+        button.getAttribute("onclick") ===
+        `showSection('${section}')`
+    );
 
-
-    const index =
-        sections.indexOf(section);
-
-
-    if (navItems[index]) {
-
-        navItems[index].classList.add("active");
-
+    if (activeButton) {
+        activeButton.classList.add("active");
     }
 
 
     if (section === "dashboard") {
-
         loadDashboard();
-
     }
 
 
     if (section === "conflicts") {
-
         loadConflicts();
-
     }
 
 
     if (section === "wildlife") {
-
         loadWildlife();
-
     }
 
 
     if (section === "restoration") {
-
         loadRestoration();
+    }
 
+
+    if (section === "elephant-detection") {
+        loadElephantDetections();
     }
 
 }
@@ -1321,6 +1313,370 @@ async function createWildlife(
 
     }
 
+}
+
+
+// ==========================================
+// AI ELEPHANT DETECTION
+// ==========================================
+
+async function loadElephantDetections() {
+
+    const container = document.getElementById(
+        "elephantDetectionList"
+    );
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="empty-state">
+            Loading AI elephant detections...
+        </div>
+    `;
+
+    try {
+
+        const data = await apiRequest(
+            "/api/elephant-detections"
+        );
+
+        renderElephantDetections(
+            data.detections || []
+        );
+
+    } catch (error) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                ${escapeHTML(error.message)}
+            </div>
+        `;
+
+    }
+}
+
+
+function renderElephantDetections(detections) {
+
+    const container = document.getElementById(
+        "elephantDetectionList"
+    );
+
+    if (!container) return;
+
+    if (!detections || detections.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                No AI elephant detections found.
+            </div>
+        `;
+        return;
+    }
+
+
+    const canVerify =
+        currentUser &&
+        (currentUser.role === "officer" ||
+         currentUser.role === "admin");
+
+
+    container.innerHTML = detections.map(detection => {
+
+        const status = String(
+            detection.verificationStatus || "PENDING"
+        ).toUpperCase();
+
+        const risk = String(
+            detection.riskLevel || "MEDIUM"
+        ).toUpperCase();
+
+        const confidence = Number(
+            detection.confidence || 0
+        );
+
+        const confidencePercent = Math.round(
+            confidence * 100
+        );
+
+        const timestamp = formatDetectionDate(
+            detection.timestamp
+        );
+
+        let actionButtons = "";
+
+        if (canVerify && status === "PENDING") {
+            actionButtons = `
+                <div class="detection-actions">
+
+                    <button
+                        class="primary-button small"
+                        onclick="verifyElephantDetection('${detection._id}')">
+                        ✓ Verify Detection
+                    </button>
+
+                    <button
+                        class="secondary-button small"
+                        onclick="rejectElephantDetection('${detection._id}')">
+                        ✕ Reject Detection
+                    </button>
+
+                </div>
+            `;
+        }
+
+
+        const verificationDetails =
+            status !== "PENDING" && detection.verifiedBy
+                ? `
+                    <p>
+                        Verified by:
+                        <strong>
+                            ${escapeHTML(detection.verifiedBy)}
+                        </strong>
+                    </p>
+
+                    <p>
+                        Verified at:
+                        ${formatDetectionDate(detection.verifiedAt)}
+                    </p>
+                `
+                : "";
+
+
+        const imageFilename = detection.image
+            ? String(detection.image)
+            : "";
+
+        const imageUrl = imageFilename
+            ? `${API_URL}/detection-images/${encodeURIComponent(imageFilename)}`
+            : "";
+
+        const detectionImage = imageUrl
+            ? `
+                <div class="detection-image-wrapper">
+                    <img
+                        class="detection-image"
+                        src="${imageUrl}"
+                        alt="YOLO elephant detection image"
+                        loading="lazy"
+                        onerror="this.parentElement.classList.add('image-load-error'); this.style.display='none';"
+                    >
+                    <div class="detection-image-error">
+                        Detection image unavailable
+                    </div>
+                </div>
+            `
+            : `
+                <div class="detection-image-wrapper no-image">
+                    <div class="detection-image-placeholder">
+                        📷<br>
+                        No detection image available
+                    </div>
+                </div>
+            `;
+
+        return `
+            <div class="data-card detection-card">
+
+                <div class="detection-card-content">
+
+                    ${detectionImage}
+
+                    <div class="detection-card-details">
+
+                        <div class="data-card-header">
+
+                            <div>
+                                <h3>🐘 Elephant Detection</h3>
+                                <p class="detection-id">
+                                    ID: ${escapeHTML(detection._id)}
+                                </p>
+                            </div>
+
+                            <span class="badge ${status.toLowerCase()}">
+                                ${escapeHTML(status)}
+                            </span>
+
+                        </div>
+
+
+                        <div class="detection-grid">
+
+                            <div class="detection-field">
+                                <span>Camera ID</span>
+                                <strong>${escapeHTML(detection.deviceId)}</strong>
+                            </div>
+
+                            <div class="detection-field">
+                                <span>PIR Sensor</span>
+                                <strong>${escapeHTML(detection.sensorId)}</strong>
+                            </div>
+
+                            <div class="detection-field">
+                                <span>Zone</span>
+                                <strong>${escapeHTML(detection.zone)}</strong>
+                            </div>
+
+                            <div class="detection-field">
+                                <span>Elephant Count</span>
+                                <strong>${escapeHTML(detection.elephantCount)}</strong>
+                            </div>
+
+                            <div class="detection-field">
+                                <span>YOLO Confidence</span>
+                                <strong>${confidencePercent}%</strong>
+                            </div>
+
+                            <div class="detection-field">
+                                <span>Risk Level</span>
+                                <strong class="risk-${risk.toLowerCase()}">
+                                    ${escapeHTML(risk)}
+                                </strong>
+                            </div>
+
+                            <div class="detection-field detection-field-wide">
+                                <span>Detection Time</span>
+                                <strong>${escapeHTML(timestamp)}</strong>
+                            </div>
+
+                            <div class="detection-field detection-field-wide">
+                                <span>Image Reference</span>
+                                <strong>${escapeHTML(detection.image || "Not available")}</strong>
+                            </div>
+
+                        </div>
+
+                        ${verificationDetails}
+                        ${actionButtons}
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+    }).join("");
+}
+
+
+function formatDetectionDate(value) {
+
+    if (!value) {
+        return "Not available";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value);
+    }
+
+    return date.toLocaleString();
+}
+
+
+async function verifyElephantDetection(
+    detectionId
+) {
+
+    if (!currentUser ||
+        (currentUser.role !== "officer" &&
+         currentUser.role !== "admin")) {
+        alert("Only Forest Officers and Administrators can verify detections.");
+        return;
+    }
+
+
+    const confirmed = confirm(
+        "Are you sure you want to verify this elephant detection?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await apiRequest(
+            `/api/elephant-detections/${detectionId}/verify`,
+            {
+                method: "PATCH",
+                body: JSON.stringify({
+                    verificationStatus: "VERIFIED",
+                    verifiedBy: currentUser.name || currentUser.email || "Forest Officer"
+                })
+            }
+        );
+
+        alert(
+            "Elephant detection verified successfully."
+        );
+
+        await loadElephantDetections();
+        await loadDashboard();
+
+    } catch (error) {
+
+        alert(
+            "Verification failed: " +
+            error.message
+        );
+
+    }
+}
+
+
+async function rejectElephantDetection(
+    detectionId
+) {
+
+    if (!currentUser ||
+        (currentUser.role !== "officer" &&
+         currentUser.role !== "admin")) {
+        alert("Only Forest Officers and Administrators can reject detections.");
+        return;
+    }
+
+
+    const confirmed = confirm(
+        "Are you sure you want to reject this elephant detection?"
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    try {
+
+        await apiRequest(
+            `/api/elephant-detections/${detectionId}/verify`,
+            {
+                method: "PATCH",
+                body: JSON.stringify({
+                    verificationStatus: "REJECTED",
+                    verifiedBy: currentUser.name || currentUser.email || "Forest Officer"
+                })
+            }
+        );
+
+        alert(
+            "Elephant detection rejected successfully."
+        );
+
+        await loadElephantDetections();
+        await loadDashboard();
+
+    } catch (error) {
+
+        alert(
+            "Rejection failed: " +
+            error.message
+        );
+
+    }
 }
 
 

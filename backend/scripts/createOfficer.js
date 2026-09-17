@@ -9,21 +9,28 @@ const createOfficer = async () => {
     try {
         await connectDB();
 
-        const email = process.env.OFFICER_EMAIL;
-        const password = process.env.OFFICER_PASSWORD;
+        const email = "officer@forestsphere.com";
+        const password = "Officer@123";
 
-        // Check whether officer already exists
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const existingOfficer = await User.findOne({ email });
 
         if (existingOfficer) {
-            console.log("Officer account already exists.");
+            existingOfficer.password = hashedPassword;
+            existingOfficer.role = "officer";
+            existingOfficer.name = "Forest Officer";
+
+            await existingOfficer.save();
+
+            console.log("Officer account password updated successfully.");
+            console.log("Email:", email);
+            console.log("Password:", password);
+            console.log("Role:", existingOfficer.role);
+
             process.exit(0);
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create officer
         const officer = await User.create({
             name: "Forest Officer",
             email,
@@ -33,12 +40,13 @@ const createOfficer = async () => {
 
         console.log("Forest Officer created successfully.");
         console.log("Email:", officer.email);
+        console.log("Password:", password);
         console.log("Role:", officer.role);
 
         process.exit(0);
 
     } catch (error) {
-        console.error("Error creating officer:", error.message);
+        console.error("Error creating/updating officer:", error.message);
         process.exit(1);
     }
 };
