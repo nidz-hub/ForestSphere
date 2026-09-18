@@ -367,7 +367,8 @@ function showSection(section) {
         "conflicts",
         "wildlife",
         "restoration",
-        "elephant-detection"
+        "elephant-detection",
+        "blockchain-audit"
     ];
 
     sections.forEach(name => {
@@ -404,7 +405,8 @@ function showSection(section) {
         conflicts: "Conflict Reports",
         wildlife: "Wildlife Sightings",
         restoration: "Forest Restoration",
-        "elephant-detection": "AI Elephant Detection"
+        "elephant-detection": "AI Elephant Detection",
+        "blockchain-audit": "Blockchain Audit"
     };
 
 
@@ -447,6 +449,10 @@ function showSection(section) {
 
     if (section === "elephant-detection") {
         loadElephantDetections();
+    }
+
+    if (section === "blockchain-audit") {
+        loadBlockchainEvents();
     }
 
 }
@@ -1677,6 +1683,136 @@ async function rejectElephantDetection(
         );
 
     }
+}
+
+
+// ==========================================
+// BLOCKCHAIN AUDIT
+// ==========================================
+
+async function loadBlockchainEvents() {
+
+    const container = document.getElementById(
+        "blockchainAuditList"
+    );
+
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="empty-state">
+            Loading blockchain audit events...
+        </div>
+    `;
+
+    try {
+
+        const data = await apiRequest(
+            "/api/blockchain/events"
+        );
+
+        renderBlockchainEvents(
+            data.events || []
+        );
+
+    } catch (error) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                ${escapeHTML(error.message)}
+            </div>
+        `;
+
+    }
+}
+
+
+function renderBlockchainEvents(events) {
+
+    const container = document.getElementById(
+        "blockchainAuditList"
+    );
+
+    if (!container) return;
+
+    if (!events || events.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty-state">
+                No blockchain audit events found.
+            </div>
+        `;
+
+        return;
+    }
+
+    container.innerHTML = events.map(event => {
+
+        const eventType = String(
+            event.eventType || "UNKNOWN"
+        );
+
+        const status = String(
+            event.status || "UNKNOWN"
+        ).toUpperCase();
+
+        return `
+            <div class="data-card">
+
+                <div class="data-card-header">
+
+                    <div>
+                        <h3>⛓️ Verified Elephant Detection</h3>
+
+                        <p class="detection-id">
+                            Event ID:
+                            ${escapeHTML(event.eventId)}
+                        </p>
+                    </div>
+
+                    <span class="badge ${status.toLowerCase()}">
+                        ${escapeHTML(status)}
+                    </span>
+
+                </div>
+
+                <div class="detection-grid">
+
+                    <div class="detection-field">
+                        <span>Event Type</span>
+                        <strong>
+                            ${escapeHTML(eventType)}
+                        </strong>
+                    </div>
+
+                    <div class="detection-field">
+                        <span>Zone</span>
+                        <strong>
+                            ${escapeHTML(event.zone)}
+                        </strong>
+                    </div>
+
+                    <div class="detection-field">
+                        <span>Verified By</span>
+                        <strong>
+                            ${escapeHTML(event.verifiedBy)}
+                        </strong>
+                    </div>
+
+                    <div class="detection-field detection-field-wide">
+                        <span>Blockchain Timestamp</span>
+                        <strong>
+                            ${escapeHTML(
+                                formatDetectionDate(event.timestamp)
+                            )}
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+    }).join("");
 }
 
 

@@ -318,6 +318,15 @@
 
                 </button>
 
+                <button
+                    class="nav-item"
+                    onclick="showSection('blockchain-audit')">
+
+                    <span>⛓️</span>
+                    Blockchain Audit
+
+                </button>
+
             </nav>
 
 
@@ -711,6 +720,75 @@
 
                     <div class="empty-state">
                         Loading AI elephant detections...
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ============================= -->
+            <!-- BLOCKCHAIN AUDIT -->
+            <!-- ============================= -->
+
+            <section id="blockchain-auditSection"
+                     class="content-section hidden">
+
+                <div class="section-header">
+
+                    <div>
+
+                        <h2>
+                            Blockchain Audit
+                        </h2>
+
+                        <p>
+                            View verified elephant detection events recorded on Hyperledger Fabric.
+                        </p>
+
+                    </div>
+
+                    <button
+                        class="primary-button small"
+                        onclick="loadBlockchainEvents()">
+
+                        ↻ Refresh
+
+                    </button>
+
+                </div>
+
+
+                <div class="detection-info-panel">
+
+                    <div class="detection-info-item">
+                        <span>Blockchain</span>
+                        <strong>Hyperledger Fabric</strong>
+                    </div>
+
+                    <div class="detection-info-item">
+                        <span>Channel</span>
+                        <strong>mychannel</strong>
+                    </div>
+
+                    <div class="detection-info-item">
+                        <span>Chaincode</span>
+                        <strong>forestsphere</strong>
+                    </div>
+
+                    <div class="detection-info-item">
+                        <span>Event Type</span>
+                        <strong>ELEPHANT_DETECTION_VERIFIED</strong>
+                    </div>
+
+                </div>
+
+
+                <div id="blockchainAuditList"
+                     class="card-list">
+
+                    <div class="empty-state">
+                        Open this section to load blockchain audit events...
                     </div>
 
                 </div>

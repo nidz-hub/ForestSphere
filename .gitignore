@@ -8,3 +8,6 @@ __pycache__/
 # ML training outputs
 m1-iot/runs/
 m1-iot/outputs/
+# YOLO model and training outputs
+yolo11n.pt
+runs/

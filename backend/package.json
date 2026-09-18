@@ -4,6 +4,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@hyperledger/fabric-gateway": "^1.12.1",
     "bcryptjs": "^3.0.3",
     "cloudinary": "^2.10.1",
     "cors": "^2.8.6",
