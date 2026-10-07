@@ -1,3 +1,4 @@
+
 # Python virtual environment
 m1-iot/venv/
 
@@ -11,3 +12,7 @@ m1-iot/outputs/
 # YOLO model and training outputs
 yolo11n.pt
 runs/
+
+node_modules/
+*.tar.gz
+
