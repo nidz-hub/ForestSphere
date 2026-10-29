@@ -1,16 +1,11 @@
+
 const express = require("express");
 const ElephantDetection = require("../models/ElephantDetection");
 const {
-    submitVerifiedDetection
+    submitDetectionDecision
 } = require("../blockchain/blockchain");
 
 const router = express.Router();
-
-
-// ==========================================
-// POST /api/elephant-detections
-// Receive detection event from ML/IoT system
-// ==========================================
 
 router.post("/", async (req, res) => {
     try {
@@ -26,7 +21,6 @@ router.post("/", async (req, res) => {
             riskLevel
         } = req.body;
 
-        // Validate required fields
         if (
             !deviceId ||
             !sensorId ||
@@ -41,15 +35,16 @@ router.post("/", async (req, res) => {
             });
         }
 
-        // Only accept elephant detections
-        if (detectedObject.toLowerCase() !== "elephant") {
+        if (
+            typeof detectedObject !== "string" ||
+            detectedObject.toLowerCase() !== "elephant"
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "Only elephant detections are accepted"
             });
         }
 
-        // Create detection record
         const detection = await ElephantDetection.create({
             deviceId,
             sensorId,
@@ -62,24 +57,17 @@ router.post("/", async (req, res) => {
             riskLevel: riskLevel || "MEDIUM"
         });
 
-        console.log(
-            "🐘 Elephant detection stored:",
-            detection._id
-        );
+        console.log("🐘 Elephant detection stored:", detection._id);
 
-        res.status(201).json({
+        return res.status(201).json({
             success: true,
             message: "Elephant detection stored successfully",
             detection
         });
-
     } catch (error) {
-        console.error(
-            "Elephant detection error:",
-            error.message
-        );
+        console.error("Elephant detection error:", error.message);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "Failed to store elephant detection",
             error: error.message
@@ -87,43 +75,27 @@ router.post("/", async (req, res) => {
     }
 });
 
-
-// ==========================================
-// GET /api/elephant-detections
-// Get all elephant detections
-// ==========================================
-
 router.get("/", async (req, res) => {
     try {
         const detections = await ElephantDetection
             .find()
             .sort({ timestamp: -1 });
 
-        res.json({
+        return res.json({
             success: true,
             count: detections.length,
             detections
         });
-
     } catch (error) {
-        console.error(
-            "Get detections error:",
-            error.message
-        );
+        console.error("Get detections error:", error.message);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
             message: "Failed to retrieve elephant detections",
             error: error.message
         });
     }
 });
-
-
-// ==========================================
-// GET /api/elephant-detections/:id
-// Get one detection
-// ==========================================
 
 router.get("/:id", async (req, res) => {
     try {
@@ -138,132 +110,84 @@ router.get("/:id", async (req, res) => {
             });
         }
 
-        res.json({
+        return res.json({
             success: true,
             detection
         });
-
     } catch (error) {
-        console.error(
-            "Get detection error:",
-            error.message
-        );
+        console.error("Get detection error:", error.message);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
-            message: "Failed to retrieve detection",
+            message: "Failed to retrieve elephant detection",
             error: error.message
         });
     }
 });
 
-
-// ==========================================
-// PATCH /api/elephant-detections/:id/verify
-// Forest Officer verifies/rejects detection
-//
-// VERIFIED:
-// MongoDB -> Hyperledger Fabric
-//
-// REJECTED:
-// MongoDB only
-// ==========================================
-
 router.patch("/:id/verify", async (req, res) => {
+    let previousDetection;
+
     try {
         const {
             verificationStatus,
             verifiedBy
         } = req.body;
 
-        // ------------------------------------------
-        // Validate verification status
-        // ------------------------------------------
-
         if (
-            !["VERIFIED", "REJECTED"].includes(
-                verificationStatus
-            )
+            !["VERIFIED", "REJECTED"].includes(verificationStatus)
         ) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "verificationStatus must be VERIFIED or REJECTED"
+                message: "verificationStatus must be VERIFIED or REJECTED"
             });
         }
 
-        // ------------------------------------------
-        // Validate officer
-        // ------------------------------------------
-
-        if (!verifiedBy) {
+        if (
+            typeof verifiedBy !== "string" ||
+            !verifiedBy.trim()
+        ) {
             return res.status(400).json({
                 success: false,
                 message: "verifiedBy is required"
             });
         }
 
-        // ------------------------------------------
-        // Find detection first
-        // ------------------------------------------
+        previousDetection = await ElephantDetection.findById(
+            req.params.id
+        );
 
-        const existingDetection =
-            await ElephantDetection.findById(
-                req.params.id
-            );
-
-        if (!existingDetection) {
+        if (!previousDetection) {
             return res.status(404).json({
                 success: false,
                 message: "Elephant detection not found"
             });
         }
 
-        // ------------------------------------------
-        // Prevent duplicate verification
-        // ------------------------------------------
-
         if (
-            existingDetection.verificationStatus ===
-            "VERIFIED"
+            previousDetection.verificationStatus === "VERIFIED" ||
+            previousDetection.verificationStatus === "REJECTED"
         ) {
             return res.status(400).json({
                 success: false,
-                message:
-                    "This elephant detection has already been verified"
+                message: `This elephant detection has already been ${previousDetection.verificationStatus.toLowerCase()}`
             });
         }
-
-        if (
-            existingDetection.verificationStatus ===
-            "REJECTED"
-        ) {
-            return res.status(400).json({
-                success: false,
-                message:
-                    "This elephant detection has already been rejected"
-            });
-        }
-
-        // ------------------------------------------
-        // Update MongoDB verification
-        // ------------------------------------------
 
         const verifiedAt = new Date();
 
-        const detection =
-            await ElephantDetection.findByIdAndUpdate(
-                req.params.id,
-                {
-                    verificationStatus,
-                    verifiedBy,
-                    verifiedAt
-                },
-                {
-                    new: true,
-                    runValidators: true
-                }
-            );
+        const detection = await ElephantDetection.findByIdAndUpdate(
+            req.params.id,
+            {
+                verificationStatus,
+                verifiedBy: verifiedBy.trim(),
+                verifiedAt
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
 
         if (!detection) {
             return res.status(404).json({
@@ -276,76 +200,39 @@ router.patch("/:id/verify", async (req, res) => {
             `🔎 Detection ${detection._id} ${verificationStatus}`
         );
 
-        // ------------------------------------------
-        // REJECTED
-        //
-        // Rejected detections are not written
-        // to the blockchain.
-        // ------------------------------------------
-
-        if (verificationStatus === "REJECTED") {
-            return res.json({
-                success: true,
-                message:
-                    "Elephant detection rejected successfully",
-                detection,
-                blockchain: {
-                    recorded: false,
-                    reason:
-                        "Rejected detections are not recorded on the blockchain"
-                }
-            });
-        }
-
-        // ------------------------------------------
-        // VERIFIED
-        //
-        // Create immutable audit event on
-        // Hyperledger Fabric.
-        // ------------------------------------------
-
         try {
             console.log(
-                "⛓️ Recording verified detection on Hyperledger Fabric..."
+                `⛓️ Recording ${verificationStatus.toLowerCase()} detection on Hyperledger Fabric...`
             );
 
-            const blockchainEvent =
-                await submitVerifiedDetection({
-                    detectionId: detection._id.toString(),
-                    zone: detection.zone,
-                    verifiedBy: detection.verifiedBy,
-                    timestamp:
-                        detection.verifiedAt.toISOString(),
-                    status: "VERIFIED"
-                });
+            const blockchainEvent = await submitDetectionDecision({
+                detectionId: detection._id.toString(),
+                zone: detection.zone,
+                verifiedBy: detection.verifiedBy,
+                timestamp: detection.verifiedAt.toISOString(),
+                status: verificationStatus
+            });
 
             console.log(
                 "✅ Blockchain audit record created:",
                 blockchainEvent
             );
 
+            const message =
+                verificationStatus === "VERIFIED"
+                    ? "Elephant detection verified and recorded on blockchain successfully"
+                    : "Elephant detection rejected and recorded on blockchain successfully";
+
             return res.json({
                 success: true,
-                message:
-                    "Elephant detection verified and recorded on blockchain successfully",
+                message,
                 detection,
                 blockchain: {
                     recorded: true,
                     event: blockchainEvent
                 }
             });
-
         } catch (blockchainError) {
-
-            // ------------------------------------------
-            // Fabric submission failed.
-            //
-            // Roll MongoDB status back to PENDING
-            // so the system does not show VERIFIED
-            // without the corresponding blockchain
-            // audit record.
-            // ------------------------------------------
-
             console.error(
                 "❌ Blockchain recording failed:",
                 blockchainError.message
@@ -355,19 +242,20 @@ router.patch("/:id/verify", async (req, res) => {
                 await ElephantDetection.findByIdAndUpdate(
                     req.params.id,
                     {
-                        verificationStatus: "PENDING",
-                        verifiedBy: null,
-                        verifiedAt: null
-                    }
+                        verificationStatus:
+                            previousDetection.verificationStatus || "PENDING",
+                        verifiedBy: previousDetection.verifiedBy || null,
+                        verifiedAt: previousDetection.verifiedAt || null
+                    },
+                    { runValidators: true }
                 );
 
                 console.log(
-                    "↩️ MongoDB verification rolled back to PENDING"
+                    "↩️ MongoDB decision rolled back because blockchain recording failed"
                 );
-
             } catch (rollbackError) {
                 console.error(
-                    "❌ Failed to roll back MongoDB verification:",
+                    "❌ MongoDB rollback failed:",
                     rollbackError.message
                 );
             }
@@ -375,24 +263,19 @@ router.patch("/:id/verify", async (req, res) => {
             return res.status(500).json({
                 success: false,
                 message:
-                    "Verification could not be completed because the blockchain audit record failed",
+                    "The decision could not be completed because blockchain recording failed",
                 error: blockchainError.message
             });
         }
-
     } catch (error) {
-        console.error(
-            "Verification error:",
-            error.message
-        );
+        console.error("Verification error:", error.message);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
-            message: "Failed to verify detection",
+            message: "Failed to process detection decision",
             error: error.message
         });
     }
 });
-
 
 module.exports = router;

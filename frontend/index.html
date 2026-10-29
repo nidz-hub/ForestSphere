@@ -287,19 +287,7 @@
                     Conflict Reports
 
                 </button>
-
-
-                <button
-                    class="nav-item"
-                    onclick="showSection('wildlife')">
-
-                    <span>🐘</span>
-                    Wildlife Sightings
-
-                </button>
-
-
-                <button
+<button
                     class="nav-item"
                     onclick="showSection('restoration')">
 
@@ -414,7 +402,7 @@
                         <p>
                             A centralized platform for
                             conservation reporting,
-                            wildlife monitoring and
+                            AI-assisted elephant monitoring and
                             forest restoration management.
                         </p>
 
@@ -443,25 +431,7 @@
                         </div>
 
                     </div>
-
-
-                    <div class="stat-card">
-
-                        <div class="stat-icon">
-                            🐘
-                        </div>
-
-                        <div>
-                            <span>Wildlife Sightings</span>
-                            <strong id="wildlifeCount">
-                                0
-                            </strong>
-                        </div>
-
-                    </div>
-
-
-                    <div class="stat-card">
+<div class="stat-card">
 
                         <div class="stat-icon">
                             🌱
@@ -611,51 +581,6 @@
 
             </section>
 
-
-            <!-- ============================= -->
-            <!-- WILDLIFE -->
-            <!-- ============================= -->
-
-            <section id="wildlifeSection"
-                     class="content-section hidden">
-
-                <div class="section-header">
-
-                    <div>
-
-                        <h2>
-                            Wildlife Sightings
-                        </h2>
-
-                        <p>
-                            Record wildlife observations
-                            and sightings.
-                        </p>
-
-                    </div>
-
-
-                    <button
-                        class="primary-button small"
-                        onclick="openWildlifeModal()">
-
-                        + Add Sighting
-
-                    </button>
-
-                </div>
-
-
-                <div id="wildlifeList"
-                     class="card-list">
-
-                    <div class="empty-state">
-                        Loading sightings...
-                    </div>
-
-                </div>
-
-            </section>
 
 
             <!-- ============================= -->
@@ -961,6 +886,20 @@
 
                 </div>
 
+                <div class="input-group">
+                    <label for="conflictEvidence">Incident Image (optional)</label>
+                    <input
+                        type="file"
+                        id="conflictEvidence"
+                        name="evidence"
+                        accept="image/jpeg,image/png,image/webp"
+                    >
+                    <small>Upload one JPG, PNG, or WebP image (maximum 5 MB).</small>
+                    <div id="conflictImagePreview" class="conflict-image-preview hidden">
+                        <img id="conflictPreviewImage" alt="Selected incident evidence preview">
+                        <button type="button" class="secondary-button small" onclick="clearConflictImage()">Remove image</button>
+                    </div>
+                </div>
 
                 <button
                     type="submit"
@@ -976,95 +915,6 @@
 
     </div>
 
-
-    <!-- ============================= -->
-    <!-- WILDLIFE MODAL -->
-    <!-- ============================= -->
-
-    <div id="wildlifeModal"
-         class="modal hidden">
-
-        <div class="modal-card">
-
-            <div class="modal-header">
-
-                <h2>Record Wildlife Sighting</h2>
-
-                <button onclick="closeModal('wildlifeModal')">
-                    ×
-                </button>
-
-            </div>
-
-
-            <form id="wildlifeForm">
-
-                <div class="input-group">
-
-                    <label>Species</label>
-
-                    <input
-                        type="text"
-                        id="wildlifeSpecies"
-                        placeholder="e.g. Asian Elephant"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Location</label>
-
-                    <input
-                        type="text"
-                        id="wildlifeLocation"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Date & Time</label>
-
-                    <input
-                        type="datetime-local"
-                        id="wildlifeDate"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label>Description</label>
-
-                    <textarea
-                        id="wildlifeDescription"
-                        rows="4"
-                        required
-                    ></textarea>
-
-                </div>
-
-
-                <button
-                    type="submit"
-                    class="primary-button">
-
-                    Submit Sighting
-
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
 
 
     <!-- ============================= -->

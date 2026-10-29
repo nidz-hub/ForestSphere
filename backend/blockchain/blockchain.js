@@ -1,27 +1,19 @@
+
 const fs = require("fs");
 const path = require("path");
 const grpc = require("@grpc/grpc-js");
 const { connect, signers } = require("@hyperledger/fabric-gateway");
 const crypto = require("crypto");
 
-// ============================================================
-// ForestSphere - Hyperledger Fabric Gateway Configuration
-// ============================================================
-
 const WSL_FABRIC_PATH =
     "\\\\wsl$\\Ubuntu\\home\\ponnanna\\fabric-samples\\test-network";
 
 const MSP_ID = "Org1MSP";
-
 const CHANNEL_NAME = "mychannel";
 const CHAINCODE_NAME = "forestsphere";
 
 const PEER_ENDPOINT = "localhost:7051";
 const PEER_HOST_OVERRIDE = "peer0.org1.example.com";
-
-// ============================================================
-// Certificate and key paths
-// ============================================================
 
 const CERTIFICATE_PATH = path.join(
     WSL_FABRIC_PATH,
@@ -57,10 +49,6 @@ const TLS_CERTIFICATE_PATH = path.join(
     "ca.crt"
 );
 
-// ============================================================
-// Helper: find private key
-// ============================================================
-
 function findPrivateKey() {
     if (!fs.existsSync(PRIVATE_KEY_DIR)) {
         throw new Error(
@@ -71,7 +59,7 @@ function findPrivateKey() {
     const files = fs.readdirSync(PRIVATE_KEY_DIR);
 
     const keyFile = files.find(
-        (file) =>
+        file =>
             file.endsWith("_sk") ||
             file.endsWith(".pem") ||
             file.includes("priv")
@@ -86,19 +74,14 @@ function findPrivateKey() {
     return path.join(PRIVATE_KEY_DIR, keyFile);
 }
 
-// ============================================================
-// Create gRPC connection
-// ============================================================
-
 function createGrpcConnection() {
     if (!fs.existsSync(TLS_CERTIFICATE_PATH)) {
         throw new Error(
-            `Peer TLS certificate not found: ${TLS_CERTIFICATE_PATH}`
+            `Fabric TLS certificate not found: ${TLS_CERTIFICATE_PATH}`
         );
     }
 
     const tlsRootCert = fs.readFileSync(TLS_CERTIFICATE_PATH);
-
     const credentials = grpc.credentials.createSsl(tlsRootCert);
 
     return new grpc.Client(
@@ -110,10 +93,6 @@ function createGrpcConnection() {
     );
 }
 
-// ============================================================
-// Create Fabric Gateway connection
-// ============================================================
-
 async function createGateway() {
     if (!fs.existsSync(CERTIFICATE_PATH)) {
         throw new Error(
@@ -122,7 +101,6 @@ async function createGateway() {
     }
 
     const privateKeyPath = findPrivateKey();
-
     const certificate = fs.readFileSync(CERTIFICATE_PATH);
     const privateKey = fs.readFileSync(privateKeyPath);
 
@@ -143,19 +121,11 @@ async function createGateway() {
         signer
     });
 
-    return {
-        gateway,
-        client
-    };
+    return { gateway, client };
 }
-
-// ============================================================
-// Get ForestSphere blockchain network
-// ============================================================
 
 async function getNetwork() {
     const connection = await createGateway();
-
     const network = connection.gateway.getNetwork(CHANNEL_NAME);
 
     return {
@@ -164,18 +134,34 @@ async function getNetwork() {
     };
 }
 
-// ============================================================
-// Submit verified elephant detection
-// ============================================================
-
-async function submitVerifiedDetection({
-    detectionId,
-    zone,
-    verifiedBy,
+// Generic event writer for supported ForestSphere decisions.
+async function submitAuditEvent({
+    eventId,
+    eventType,
+    location,
+    decidedBy,
     timestamp,
-    status = "VERIFIED"
+    status
 }) {
     let connection;
+
+    if (
+        !eventId ||
+        !eventType ||
+        !location ||
+        !decidedBy ||
+        !timestamp
+    ) {
+        throw new Error(
+            "eventId, eventType, location, decidedBy, and timestamp are required."
+        );
+    }
+
+    const normalizedStatus = String(status || "").toUpperCase();
+
+    if (!["VERIFIED", "REJECTED"].includes(normalizedStatus)) {
+        throw new Error("Status must be VERIFIED or REJECTED.");
+    }
 
     try {
         connection = await getNetwork();
@@ -184,16 +170,14 @@ async function submitVerifiedDetection({
             CHAINCODE_NAME
         );
 
-        const eventType = "ELEPHANT_DETECTION_VERIFIED";
-
         const result = await contract.submitTransaction(
             "CreateEvent",
-            String(detectionId),
-            eventType,
-            String(zone),
-            String(verifiedBy),
+            String(eventId),
+            String(eventType),
+            String(location),
+            String(decidedBy),
             String(timestamp),
-            String(status)
+            normalizedStatus
         );
 
         const event = JSON.parse(
@@ -201,17 +185,16 @@ async function submitVerifiedDetection({
         );
 
         console.log(
-            "⛓️ Verified elephant detection recorded on Fabric:",
+            `Blockchain audit event recorded (${eventType}):`,
             event
         );
 
         return event;
     } catch (error) {
         console.error(
-            "❌ Failed to submit event to Hyperledger Fabric:",
+            `Failed to record ${eventType} on Fabric:`,
             error.message
         );
-
         throw error;
     } finally {
         if (connection) {
@@ -221,9 +204,94 @@ async function submitVerifiedDetection({
     }
 }
 
-// ============================================================
-// Read one blockchain event
-// ============================================================
+// Existing AI Elephant Detection integration.
+async function submitDetectionDecision({
+    detectionId,
+    zone,
+    verifiedBy,
+    timestamp,
+    status
+}) {
+    const normalizedStatus = String(status || "").toUpperCase();
+
+    if (!["VERIFIED", "REJECTED"].includes(normalizedStatus)) {
+        throw new Error(
+            "Invalid detection status. Use VERIFIED or REJECTED."
+        );
+    }
+
+    return submitAuditEvent({
+        eventId: detectionId,
+        eventType:
+            normalizedStatus === "VERIFIED"
+                ? "ELEPHANT_DETECTION_VERIFIED"
+                : "ELEPHANT_DETECTION_REJECTED",
+        location: zone,
+        decidedBy: verifiedBy,
+        timestamp,
+        status: normalizedStatus
+    });
+}
+
+// New integration for conflict reports and wildlife sightings.
+async function submitConservationDecision({
+    recordId,
+    recordType,
+    location,
+    decidedBy,
+    timestamp,
+    status
+}) {
+    const normalizedType = String(recordType || "").toUpperCase();
+    const normalizedStatus = String(status || "").toUpperCase();
+
+    const eventPrefixes = {
+        CONFLICT_REPORT: "CONFLICT_REPORT",
+        WILDLIFE_SIGHTING: "WILDLIFE_SIGHTING"
+    };
+
+    if (!eventPrefixes[normalizedType]) {
+        throw new Error(
+            "recordType must be CONFLICT_REPORT or WILDLIFE_SIGHTING."
+        );
+    }
+
+    if (!["VERIFIED", "REJECTED"].includes(normalizedStatus)) {
+        throw new Error("Status must be VERIFIED or REJECTED.");
+    }
+
+    return submitAuditEvent({
+        eventId: `${normalizedType}_${recordId}`,
+        eventType: `${eventPrefixes[normalizedType]}_${normalizedStatus}`,
+        location,
+        decidedBy,
+        timestamp,
+        status: normalizedStatus
+    });
+}
+
+async function submitVerifiedDetection({
+    detectionId,
+    zone,
+    verifiedBy,
+    timestamp,
+    status = "VERIFIED"
+}) {
+    if (String(status).toUpperCase() !== "VERIFIED") {
+        throw new Error(
+            "submitVerifiedDetection only accepts VERIFIED status. " +
+            "Use submitDetectionDecision for rejected cases."
+        );
+    }
+
+    return submitDetectionDecision({
+        detectionId,
+        zone,
+        verifiedBy,
+        timestamp,
+        status: "VERIFIED"
+    });
+}
 
 async function readEvent(eventId) {
     let connection;
@@ -244,11 +312,7 @@ async function readEvent(eventId) {
             Buffer.from(result).toString("utf8")
         );
     } catch (error) {
-        console.error(
-            "❌ Failed to read Fabric event:",
-            error.message
-        );
-
+        console.error("Failed to read Fabric event:", error.message);
         throw error;
     } finally {
         if (connection) {
@@ -257,10 +321,6 @@ async function readEvent(eventId) {
         }
     }
 }
-
-// ============================================================
-// Get all blockchain events
-// ============================================================
 
 async function getAllEvents() {
     let connection;
@@ -281,10 +341,9 @@ async function getAllEvents() {
         );
     } catch (error) {
         console.error(
-            "❌ Failed to retrieve Fabric events:",
+            "Failed to retrieve Fabric events:",
             error.message
         );
-
         throw error;
     } finally {
         if (connection) {
@@ -294,13 +353,12 @@ async function getAllEvents() {
     }
 }
 
-// ============================================================
-// Exports
-// ============================================================
-
 module.exports = {
     createGateway,
     getNetwork,
+    submitAuditEvent,
+    submitDetectionDecision,
+    submitConservationDecision,
     submitVerifiedDetection,
     readEvent,
     getAllEvents

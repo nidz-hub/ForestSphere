@@ -310,51 +310,32 @@ function logout() {
 // API HELPER
 // ==========================================
 
-async function apiRequest(
-    endpoint,
-    options = {}
-) {
+async function apiRequest(endpoint, options = {}) {
+    const headers = {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(options.headers || {})
+    };
 
-    const response = await fetch(
-        `${API_URL}${endpoint}`,
-        {
-            ...options,
+    const isFormData = options.body instanceof FormData;
 
-            headers: {
+    if (!isFormData && options.body !== undefined) {
+        headers["Content-Type"] =
+            headers["Content-Type"] || "application/json";
+    }
 
-                "Content-Type": "application/json",
-
-                ...(token
-                    ? {
-                        Authorization:
-                            `Bearer ${token}`
-                    }
-                    : {}),
-
-                ...(options.headers || {})
-
-            }
-
-        }
-    );
-
+    const response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers
+    });
 
     const data = await response.json();
 
-
     if (!response.ok) {
-
-        throw new Error(
-            data.message || "Request failed"
-        );
-
+        throw new Error(data.message || "Request failed");
     }
 
-
     return data;
-
 }
-
 
 // ==========================================
 // NAVIGATION
@@ -365,7 +346,6 @@ function showSection(section) {
     const sections = [
         "dashboard",
         "conflicts",
-        "wildlife",
         "restoration",
         "elephant-detection",
         "blockchain-audit"
@@ -403,7 +383,6 @@ function showSection(section) {
     const titles = {
         dashboard: "Dashboard",
         conflicts: "Conflict Reports",
-        wildlife: "Wildlife Sightings",
         restoration: "Forest Restoration",
         "elephant-detection": "AI Elephant Detection",
         "blockchain-audit": "Blockchain Audit"
@@ -436,10 +415,6 @@ function showSection(section) {
         loadConflicts();
     }
 
-
-    if (section === "wildlife") {
-        loadWildlife();
-    }
 
 
     if (section === "restoration") {
@@ -492,15 +467,7 @@ async function loadDashboard() {
                 );
 
         }
-
-
-        const wildlifeData =
-            await apiRequest(
-                "/api/wildlife/my-sightings"
-            );
-
-
-        const projectData =
+const projectData =
             await apiRequest(
                 "/api/restoration"
             );
@@ -510,15 +477,7 @@ async function loadDashboard() {
             "conflictCount"
         ).textContent =
             conflictData.count;
-
-
-        document.getElementById(
-            "wildlifeCount"
-        ).textContent =
-            wildlifeData.count;
-
-
-        document.getElementById(
+document.getElementById(
             "projectCount"
         ).textContent =
             projectData.count;
@@ -773,34 +732,25 @@ function renderOfficerConflicts(reports) {
                 "Unknown User";
 
 
-            let verifyButton = "";
+            let actionButtons = "";
+            const status = String(report.status || "PENDING").toUpperCase();
 
-
-            /*
-             * Show Verify button ONLY
-             * for pending reports.
-             */
-
-            if (
-                report.status === "PENDING"
-            ) {
-
-                verifyButton = `
-
-                    <button
-
-                        class="primary-button small"
-
-                        onclick="verifyConflict(
-                            '${report._id}'
-                        )">
-
-                        ✓ Verify Report
-
-                    </button>
-
+            // Only pending reports can be reviewed.
+            if (status === "PENDING") {
+                actionButtons = `
+                    <div class="detection-actions">
+                        <button
+                            class="primary-button small"
+                            onclick="verifyConflict('${report._id}')">
+                            ✓ Verify Report
+                        </button>
+                        <button
+                            class="secondary-button small"
+                            onclick="rejectConflict('${report._id}')">
+                            ✕ Reject Report
+                        </button>
+                    </div>
                 `;
-
             }
 
 
@@ -875,9 +825,9 @@ function renderOfficerConflicts(reports) {
                         </strong>
 
                     </p>
+                    ${report.evidenceUrl ? `<img class="conflict-evidence-image" src="${escapeHTML(report.evidenceUrl)}" alt="Conflict incident evidence" loading="lazy">` : ""}
 
-
-                    ${verifyButton}
+                    ${actionButtons}
 
                 </div>
 
@@ -954,6 +904,37 @@ async function verifyConflict(
 
 
 // ==========================================
+// REJECT CONFLICT REPORT
+// ==========================================
+
+async function rejectConflict(reportId) {
+    const rejectionReason = prompt(
+        "Enter a reason for rejecting this conflict report (optional):"
+    );
+
+    if (rejectionReason === null) return;
+
+    const confirmed = confirm(
+        "Are you sure you want to reject this conflict report?"
+    );
+    if (!confirmed) return;
+
+    try {
+        await apiRequest(`/api/conflicts/${reportId}/reject`, {
+            method: "PUT",
+            body: JSON.stringify({ rejectionReason: rejectionReason.trim() })
+        });
+
+        alert("Conflict report rejected successfully.");
+        await loadConflicts();
+        await loadDashboard();
+    } catch (error) {
+        alert("Rejection failed: " + error.message);
+    }
+}
+
+
+// ==========================================
 // RECENT CONFLICT REPORTS
 // ==========================================
 
@@ -1021,305 +1002,84 @@ function renderRecentConflicts(
 // CREATE CONFLICT
 // ==========================================
 
-async function createConflict(
-    event
-) {
-
+async function createConflict(event) {
     event.preventDefault();
 
+    const form = event.target;
+    const imageInput = document.getElementById("conflictEvidence");
+    const image = imageInput.files[0];
+
+    if (image) {
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        if (!allowedTypes.includes(image.type)) {
+            alert("Please choose a JPG, PNG, or WebP image.");
+            return;
+        }
+        if (image.size > 5 * 1024 * 1024) {
+            alert("The image must be 5 MB or smaller.");
+            return;
+        }
+    }
+
+    const formData = new FormData();
+    formData.append("title", document.getElementById("conflictTitle").value.trim());
+    formData.append("description", document.getElementById("conflictDescription").value.trim());
+    formData.append("location", document.getElementById("conflictLocation").value.trim());
+    formData.append("incidentDate", document.getElementById("conflictDate").value);
+    formData.append("incidentType", document.getElementById("conflictType").value);
+    if (image) formData.append("evidence", image);
 
     try {
+        const response = await fetch(`${API_URL}/api/conflicts`, {
+            method: "POST",
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            body: formData
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "Could not submit conflict report");
 
-        await apiRequest(
-
-            "/api/conflicts",
-
-            {
-
-                method: "POST",
-
-                body: JSON.stringify({
-
-                    title:
-                        document.getElementById(
-                            "conflictTitle"
-                        ).value,
-
-
-                    description:
-                        document.getElementById(
-                            "conflictDescription"
-                        ).value,
-
-
-                    location:
-                        document.getElementById(
-                            "conflictLocation"
-                        ).value,
-
-
-                    incidentDate:
-                        document.getElementById(
-                            "conflictDate"
-                        ).value,
-
-
-                    incidentType:
-                        document.getElementById(
-                            "conflictType"
-                        ).value
-
-                })
-
-            }
-
-        );
-
-
-        closeModal(
-            "conflictModal"
-        );
-
-
-        event.target.reset();
-
-
+        closeModal("conflictModal");
+        form.reset();
+        clearConflictImage();
         await loadConflicts();
-
-
         await loadDashboard();
-
-
-        alert(
-            "Conflict report submitted successfully."
-        );
-
-
+        alert("Conflict report submitted successfully.");
     } catch (error) {
-
-        alert(
-            error.message
-        );
-
+        alert(error.message);
     }
-
 }
 
-
-// ==========================================
-// WILDLIFE
-// ==========================================
-
-async function loadWildlife() {
-
-    try {
-
-        const data =
-            await apiRequest(
-                "/api/wildlife/my-sightings"
-            );
-
-
-        renderWildlife(
-            data.sightings
-        );
-
-
-    } catch (error) {
-
-        document.getElementById(
-            "wildlifeList"
-        ).innerHTML = `
-
-            <div class="empty-state">
-
-                ${escapeHTML(
-                    error.message
-                )}
-
-            </div>
-
-        `;
-
-    }
-
-}
-
-
-// ==========================================
-// WILDLIFE DISPLAY
-// ==========================================
-
-function renderWildlife(
-    sightings
-) {
-
-    const container =
-        document.getElementById(
-            "wildlifeList"
-        );
-
-
-    if (
-        !sightings ||
-        sightings.length === 0
-    ) {
-
-        container.innerHTML = `
-
-            <div class="empty-state">
-
-                No wildlife sightings found.
-
-            </div>
-
-        `;
-
+function previewConflictImage() {
+    const input = document.getElementById("conflictEvidence");
+    const preview = document.getElementById("conflictImagePreview");
+    const previewImage = document.getElementById("conflictPreviewImage");
+    const file = input.files && input.files[0];
+    if (!file) {
+        clearConflictImage();
         return;
-
     }
-
-
-    container.innerHTML =
-
-        sightings.map(
-            sighting => `
-
-            <div class="data-card">
-
-                <div class="data-card-header">
-
-                    <h3>
-
-                        🐘
-                        ${escapeHTML(
-                            sighting.species
-                        )}
-
-                    </h3>
-
-
-                    <span
-                        class="badge ${String(
-                            sighting.status
-                        ).toLowerCase()}">
-
-                        ${escapeHTML(
-                            sighting.status
-                        )}
-
-                    </span>
-
-                </div>
-
-
-                <p>
-
-                    📍
-                    ${escapeHTML(
-                        sighting.location
-                    )}
-
-                </p>
-
-
-                <p>
-
-                    ${escapeHTML(
-                        sighting.description
-                    )}
-
-                </p>
-
-            </div>
-
-        `
-        ).join("");
-
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 5 * 1024 * 1024) {
+        alert("Choose a JPG, PNG, or WebP image up to 5 MB.");
+        input.value = "";
+        clearConflictImage();
+        return;
+    }
+    previewImage.src = URL.createObjectURL(file);
+    preview.classList.remove("hidden");
 }
 
-
-// ==========================================
-// CREATE WILDLIFE SIGHTING
-// ==========================================
-
-async function createWildlife(
-    event
-) {
-
-    event.preventDefault();
-
-
-    try {
-
-        await apiRequest(
-
-            "/api/wildlife",
-
-            {
-
-                method: "POST",
-
-                body: JSON.stringify({
-
-                    species:
-                        document.getElementById(
-                            "wildlifeSpecies"
-                        ).value,
-
-
-                    location:
-                        document.getElementById(
-                            "wildlifeLocation"
-                        ).value,
-
-
-                    sightingDate:
-                        document.getElementById(
-                            "wildlifeDate"
-                        ).value,
-
-
-                    description:
-                        document.getElementById(
-                            "wildlifeDescription"
-                        ).value
-
-                })
-
-            }
-
-        );
-
-
-        closeModal(
-            "wildlifeModal"
-        );
-
-
-        event.target.reset();
-
-
-        await loadWildlife();
-
-
-        await loadDashboard();
-
-
-        alert(
-            "Wildlife sighting submitted successfully."
-        );
-
-
-    } catch (error) {
-
-        alert(
-            error.message
-        );
-
+function clearConflictImage() {
+    const input = document.getElementById("conflictEvidence");
+    const preview = document.getElementById("conflictImagePreview");
+    const previewImage = document.getElementById("conflictPreviewImage");
+    if (input) input.value = "";
+    if (previewImage) {
+        if (previewImage.src.startsWith("blob:")) URL.revokeObjectURL(previewImage.src);
+        previewImage.removeAttribute("src");
     }
-
+    if (preview) preview.classList.add("hidden");
 }
+
 
 
 // ==========================================
@@ -2149,17 +1909,6 @@ function openConflictModal() {
 }
 
 
-function openWildlifeModal() {
-
-    document
-        .getElementById(
-            "wildlifeModal"
-        )
-        .classList.remove("hidden");
-
-}
-
-
 function openProjectModal() {
 
     document
@@ -2268,20 +2017,8 @@ function setupForms() {
             createConflict
         );
 
-
-    // WILDLIFE
-
-    document
-        .getElementById(
-            "wildlifeForm"
-        )
-        .addEventListener(
-            "submit",
-            createWildlife
-        );
-
-
-    // RESTORATION
+    document.getElementById("conflictEvidence").addEventListener("change", previewConflictImage);
+// RESTORATION
 
     document
         .getElementById(
